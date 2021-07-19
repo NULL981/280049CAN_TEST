@@ -1,79 +1,4 @@
-//#############################################################################
-//
-// FILE:   can_ex3_external_transmit.c
-//
-// TITLE:   CAN External Transmit Example
-//
-//! \addtogroup driver_example_list
-//! <h1> CAN-A to CAN-B External Transmit </h1>
-//!
-//! This example initializes CAN module A and CAN module B for external
-//! communication. CAN-A module is setup to transmit incrementing data for "n"
-//! number of times to the CAN-B module, where "n" is the value of TXCOUNT.
-//! CAN-B module is setup to trigger an interrupt service routine (ISR) when
-//! data is received. An error flag will be set if the transmitted data doesn't
-//! match the received data. 
-//! 
-//! \note Both CAN modules on the device need to be
-//!       connected to each other via CAN transceivers.
-//!
-//! \b Hardware \b Required \n
-//!  - A C2000 board with two CAN transceivers
-//!
-//! \b External \b Connections \n
-//!  - ControlCARD CANA is on GPIO31 (CANTXA) and GPIO30 (CANRXA)
-//!  - ControlCARD CANB is on GPIO8 (CANTXB) and GPIO10 (CANRXB)
-//!  - Launchpad CANA is on GPIO32 (CANTXA) and GPIO33 (CANRXA)
-//!  - Launchpad CANB is on GPIO8 (CANTXB) and GPIO10 (CANRXB)
-//!
-//! \b Watch \b Variables \n
-//!  - TXCOUNT - Adjust to set the number of messages to be transmitted
-//!  - txMsgCount - A counter for the number of messages sent
-//!  - rxMsgCount - A counter for the number of messages received
-//!  - txMsgData - An array with the data being sent
-//!  - rxMsgData - An array with the data that was received
-//!  - errorFlag - A flag that indicates an error has occurred
-//!
-//
-//#############################################################################
-// $TI Release: F28004x Support Library v1.12.00.00 $
-// $Release Date: Fri Feb 12 18:57:27 IST 2021 $
-// $Copyright:
-// Copyright (C) 2021 Texas Instruments Incorporated - http://www.ti.com/
-//
-// Redistribution and use in source and binary forms, with or without 
-// modification, are permitted provided that the following conditions 
-// are met:
-// 
-//   Redistributions of source code must retain the above copyright 
-//   notice, this list of conditions and the following disclaimer.
-// 
-//   Redistributions in binary form must reproduce the above copyright
-//   notice, this list of conditions and the following disclaimer in the 
-//   documentation and/or other materials provided with the   
-//   distribution.
-// 
-//   Neither the name of Texas Instruments Incorporated nor the names of
-//   its contributors may be used to endorse or promote products derived
-//   from this software without specific prior written permission.
-// 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// $
-//#############################################################################
-
-//
-// Included Files
-//
+//这是发不出去的那份代码
 #include "driverlib.h"
 #include "device.h"
 
@@ -121,25 +46,26 @@ void main(void)
     //GPIO_setPinConfig(DEVICE_GPIO_CFG_CANRXB);
     //GPIO_setPinConfig(DEVICE_GPIO_CFG_CANTXB);
 
-
+#if 0
     //GPIO_5_CANA_RX
     GPIO_setPinConfig(GPIO_5_CANA_RX);
     GPIO_setPinConfig(GPIO_4_CANA_TX);
 
-    //GPIO_setPinConfig(GPIO_33_CANA_RX);
-    //GPIO_setPinConfig(GPIO_32_CANA_TX);
+#else
+    GPIO_setPinConfig(GPIO_33_CANA_RX);//DEVICE_GPIO_CFG_CANRXA
+    GPIO_setPinConfig(GPIO_32_CANA_TX);//   DEVICE_GPIO_CFG_CANTXA
+#endif
+
 
     CAN_initModule(CANA_BASE);
-    //CAN_initModule(CANB_BASE);
+    CAN_initModule(CANB_BASE);
 
-    GPIO_setPadConfig(23, GPIO_PIN_TYPE_STD);
-    GPIO_setDirectionMode(23, GPIO_DIR_MODE_OUT);
 
     CAN_setBitRate(CANA_BASE, DEVICE_SYSCLK_FREQ, 500000, 20);
-    //CAN_setBitRate(CANB_BASE, DEVICE_SYSCLK_FREQ, 500000, 20);
+    CAN_setBitRate(CANB_BASE, DEVICE_SYSCLK_FREQ, 500000, 20);
 
 
-    //CAN_enableInterrupt(CANB_BASE, CAN_INT_IE0 | CAN_INT_ERROR |CAN_INT_STATUS);
+    CAN_enableInterrupt(CANB_BASE, CAN_INT_IE0 | CAN_INT_ERROR |CAN_INT_STATUS);
 
     CAN_enableInterrupt(CANA_BASE, CAN_INT_IE0 | CAN_INT_ERROR |CAN_INT_STATUS);
 
@@ -169,12 +95,12 @@ void main(void)
 
     CAN_setupMessageObject(CANA_BASE, TX_MSG_OBJ_ID, 0x95555555,
                                CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0,
-                               CAN_MSG_OBJ_TX_INT_ENABLE, MSG_DATA_LENGTH);
+                               CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
 
     //CANA_RX_MSG_OBJ_ID
     CAN_setupMessageObject(CANA_BASE, CANA_RX_MSG_OBJ_ID, CANA_ID,
                                CAN_MSG_FRAME_STD, CAN_MSG_OBJ_TYPE_RX, 0,
-                               CAN_MSG_OBJ_TX_INT_ENABLE | CAN_MSG_OBJ_RX_INT_ENABLE, MSG_DATA_LENGTH);
+                               CAN_MSG_OBJ_RX_INT_ENABLE, MSG_DATA_LENGTH);
 
 
 
@@ -199,15 +125,13 @@ void main(void)
     CAN_startModule(CANB_BASE);
 
 
-    for(i=0;i<10000;i++)
+    for(;;)
     {
         CAN_sendMessage(CANA_BASE, TX_MSG_OBJ_ID, MSG_DATA_LENGTH,txMsgData);
-        txMsgData[0]++;
 
         //CAN_sendMessage(CANB_BASE, 2, MSG_DATA_LENGTH,txMsgData);
-        while(CAN_getNewDataFlags(CANA_BASE) == 1 && CAN_getTxRequests(CANA_BASE) == 1);
+        //while(CanaRegs.CAN_NDAT_21 == 1 && CanaRegs.CAN_TXRQ_21 == 1);
     }
-    while(1);
 
 
 }
@@ -307,13 +231,12 @@ __interrupt void
 canaISR(void)
 {
     uint32_t status;
-    static int led = 1;
+
     //
     // Read the CAN-B interrupt status to find the cause of the interrupt
     //
     status = CAN_getInterruptCause(CANA_BASE);
-    GPIO_writePin(23,led);
-    led = 1-led;
+
     //
     // If the cause is a controller status interrupt, then get the status
     //
@@ -355,8 +278,7 @@ canaISR(void)
         // message object 1, and the message RX is complete.  Clear the
         // message object interrupt.
         //
-        //CAN_clearInterruptStatus(CANA_BASE, RX_MSG_OBJ_ID);  //问题1
-        CAN_clearInterruptStatus(CANA_BASE, CANA_RX_MSG_OBJ_ID);
+        CAN_clearInterruptStatus(CANA_BASE, RX_MSG_OBJ_ID);
 
         //
         // Increment a counter to keep track of how many messages have been
